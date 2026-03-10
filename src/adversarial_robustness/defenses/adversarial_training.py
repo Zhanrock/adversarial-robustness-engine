@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import numpy as np
 
@@ -119,7 +119,7 @@ class AdversarialTrainer:
 
         # Build attack
         if attack == "fgsm":
-            self._attack = FGSM(model, epsilon=epsilon)
+            self._attack: Union[FGSM, PGD] = FGSM(model, epsilon=epsilon)
         elif attack == "pgd":
             self._attack = PGD(model, epsilon=epsilon, alpha=pgd_alpha, num_steps=pgd_steps)
         else:
@@ -191,7 +191,7 @@ class AdversarialTrainer:
                 # (This is a proxy for real backprop — see PytorchModelWrapper
                 #  for actual torch optimizer integration.)
                 flat_grad = grad_x.reshape(bs, -1)
-                self.model._W -= (
+                self.model._W -= (  # type: ignore[attr-defined]
                     self.learning_rate
                     * (flat_grad.T @ np.eye(bs, self.model.num_classes)[y_mixed])
                     / bs

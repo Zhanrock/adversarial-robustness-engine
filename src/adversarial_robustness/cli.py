@@ -78,7 +78,7 @@ def evaluate() -> None:
         cfg_epsilon = 0.03
     else:
         cfg = load_config(args.config)
-        cfg_epsilon = cfg.attacks.fgsm.epsilon
+        cfg_epsilon = getattr(getattr(getattr(cfg, "attacks", None), "fgsm", None), "epsilon", None)
 
     epsilon = args.epsilon if args.epsilon is not None else cfg_epsilon
 
@@ -99,7 +99,8 @@ def evaluate() -> None:
     y_test = rng.integers(0, 10, size=args.num_samples).astype(np.int64)
 
     model = DummyClassifier(num_classes=10, input_shape=input_shape)
-    defenses = [] if args.no_defense else [GaussianDenoiser(sigma=0.05)]
+    from adversarial_robustness.defenses.base_defense import BaseDefense
+    defenses: list[BaseDefense] = [] if args.no_defense else [GaussianDenoiser(sigma=0.05)]
 
     # Build attacks
     all_attacks = {

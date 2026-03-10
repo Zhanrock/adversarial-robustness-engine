@@ -23,10 +23,11 @@ Algorithm:
 
 from __future__ import annotations
 
-import numpy as np
 from typing import Optional, Tuple
 
-from adversarial_robustness.attacks.base_attack import BaseAttack, AttackResult
+import numpy as np
+
+from adversarial_robustness.attacks.base_attack import AttackResult, BaseAttack
 from adversarial_robustness.models.base_model import BaseModel
 from adversarial_robustness.utils.logger import get_logger
 
@@ -80,11 +81,11 @@ class PatchAttack(BaseAttack):
         if step_size <= 0:
             raise ValueError(f"step_size must be > 0, got {step_size}")
 
-        self.patch_size    = patch_size
-        self.num_steps     = num_steps
-        self.step_size     = step_size
-        self.target_class  = target_class
-        self._rng          = np.random.default_rng(seed)
+        self.patch_size = patch_size
+        self.num_steps = num_steps
+        self.step_size = step_size
+        self.target_class = target_class
+        self._rng = np.random.default_rng(seed)
 
         # Patch initialised as random noise in [clip_min, clip_max]
         c = model.input_shape[0] if len(model.input_shape) >= 1 else 3
@@ -94,7 +95,8 @@ class PatchAttack(BaseAttack):
     def _init_patch(self) -> np.ndarray:
         """Initialise patch as random uniform noise."""
         return self._rng.uniform(
-            self.clip_min, self.clip_max,
+            self.clip_min,
+            self.clip_max,
             size=(self._channels, self.patch_size, self.patch_size),
         ).astype(np.float32)
 
@@ -123,8 +125,8 @@ class PatchAttack(BaseAttack):
         h, w = x.shape[2], x.shape[3]
         r_end = min(row + self.patch_size, h)
         c_end = min(col + self.patch_size, w)
-        ph    = r_end - row
-        pw    = c_end - col
+        ph = r_end - row
+        pw = c_end - col
         x_patched[:, :, row:r_end, col:c_end] = patch[:, :ph, :pw]
         return x_patched
 
@@ -153,19 +155,20 @@ class PatchAttack(BaseAttack):
         -------
         AttackResult with patched examples and statistics.
         """
-        x      = np.asarray(x, dtype=np.float32)
+        x = np.asarray(x, dtype=np.float32)
         labels = np.asarray(labels, dtype=np.int64)
         n, c, h, w = x.shape
 
         if self.patch_size > min(h, w):
             raise ValueError(
-                f"patch_size ({self.patch_size}) exceeds image dimensions "
-                f"({h}x{w})"
+                f"patch_size ({self.patch_size}) exceeds image dimensions " f"({h}x{w})"
             )
 
         logger.debug(
             "PatchAttack: batch=%d, patch=%dpx, steps=%d, targeted=%s",
-            n, self.patch_size, self.num_steps,
+            n,
+            self.patch_size,
+            self.num_steps,
             self.target_class is not None,
         )
 
@@ -180,16 +183,15 @@ class PatchAttack(BaseAttack):
 
         # ── 2. Patch optimisation loop ────────────────────────────────────
         for step in range(self.num_steps):
-            row, col   = self._random_location(h, w)
-            x_patched  = self._apply_patch(x, patch, row, col)
+            row, col = self._random_location(h, w)
+            x_patched = self._apply_patch(x, patch, row, col)
 
             # Gradient of loss w.r.t. whole image
             grad, loss = self.model.get_gradients(x_patched, attack_labels)
 
             # Extract gradient for the patch region only and average over batch
-            grad_patch = grad[:, :, row:row + self.patch_size,
-                                    col:col + self.patch_size]
-            avg_grad   = grad_patch.mean(axis=0)        # (C, ph, pw)
+            grad_patch = grad[:, :, row : row + self.patch_size, col : col + self.patch_size]
+            avg_grad = grad_patch.mean(axis=0)  # (C, ph, pw)
 
             ph = min(self.patch_size, h - row)
             pw = min(self.patch_size, w - col)
@@ -205,22 +207,23 @@ class PatchAttack(BaseAttack):
             patch = np.clip(patch, self.clip_min, self.clip_max)
 
             if (step + 1) % 50 == 0:
-                logger.debug("PatchAttack step %d/%d | loss=%.4f",
-                             step + 1, self.num_steps, loss)
+                logger.debug("PatchAttack step %d/%d | loss=%.4f", step + 1, self.num_steps, loss)
 
         self._patch = patch.copy()
 
         # ── 3. Apply final patch to all images (random locations) ─────────
         x_adv = np.zeros_like(x)
         for i in range(n):
-            row, col       = self._random_location(h, w)
-            x_adv[i:i+1]  = self._apply_patch(x[i:i+1], patch, row, col)
+            row, col = self._random_location(h, w)
+            x_adv[i : i + 1] = self._apply_patch(x[i : i + 1], patch, row, col)
 
         result = self._compute_result(
-            x, x_adv, labels,
+            x,
+            x_adv,
+            labels,
             metadata={
-                "patch_size":   self.patch_size,
-                "num_steps":    self.num_steps,
+                "patch_size": self.patch_size,
+                "num_steps": self.num_steps,
                 "target_class": self.target_class,
             },
         )

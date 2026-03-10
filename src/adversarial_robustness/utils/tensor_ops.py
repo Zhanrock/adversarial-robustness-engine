@@ -13,12 +13,14 @@ torch is present.
 
 from __future__ import annotations
 
-import numpy as np
 from typing import Optional, Tuple, Union
+
+import numpy as np
 
 _TORCH_AVAILABLE = False
 try:
     import torch  # noqa: F401
+
     _TORCH_AVAILABLE = True
 except ImportError:
     pass
@@ -33,6 +35,7 @@ def get_device(preference: str = "auto") -> str:
     if not _TORCH_AVAILABLE:
         return "numpy"
     import torch
+
     if preference == "auto":
         if torch.cuda.is_available():
             return "cuda"
@@ -45,6 +48,7 @@ def get_device(preference: str = "auto") -> str:
 # ---------------------------------------------------------------------------
 # NumPy shim tensor class (used when torch is absent)
 # ---------------------------------------------------------------------------
+
 
 class NumpyTensor:
     """
@@ -138,8 +142,9 @@ class NumpyTensor:
         return NumpyTensor(np.expand_dims(self.data, axis=dim))
 
     def squeeze(self, dim: Optional[int] = None) -> "NumpyTensor":
-        return NumpyTensor(np.squeeze(self.data, axis=dim) if dim is not None
-                          else np.squeeze(self.data))
+        return NumpyTensor(
+            np.squeeze(self.data, axis=dim) if dim is not None else np.squeeze(self.data)
+        )
 
     def reshape(self, *shape) -> "NumpyTensor":
         return NumpyTensor(self.data.reshape(*shape))
@@ -174,6 +179,7 @@ class NumpyTensor:
 # ---------------------------------------------------------------------------
 # Factory functions mirroring torch.* API
 # ---------------------------------------------------------------------------
+
 
 def zeros(*shape, **kwargs) -> NumpyTensor:
     return NumpyTensor(np.zeros(shape, dtype=np.float32))

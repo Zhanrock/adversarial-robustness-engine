@@ -15,7 +15,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-
 _LOG_FORMAT = "%(asctime)s | %(name)-40s | %(levelname)-8s | %(message)s"
 _DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 _configured = False

@@ -35,8 +35,8 @@ def attack_success_rate(
           ─────────────────────────────────────────────
                   |{i : y_clean[i]==y[i]}|
     """
-    was_correct   = y_pred_clean == y_true
-    now_incorrect = y_pred_adv   != y_true
+    was_correct = y_pred_clean == y_true
+    now_incorrect = y_pred_adv != y_true
     denom = was_correct.sum()
     if denom == 0:
         return 0.0
@@ -79,8 +79,8 @@ def certified_robustness_ratio(
 
     This is a proxy for certifiable robustness.
     """
-    within_budget  = perturbation_norms <= epsilon
-    still_correct  = y_pred_adv == y_true
+    within_budget = perturbation_norms <= epsilon
+    still_correct = y_pred_adv == y_true
     return float((within_budget & still_correct).sum() / max(len(y_true), 1))
 
 
@@ -97,22 +97,20 @@ def compute_all_metrics(
 
     Returns a flat dict suitable for logging and JSON serialisation.
     """
-    perturbation_norms_l2   = (x_adv - x_orig).reshape(len(x_orig), -1)
+    perturbation_norms_l2 = (x_adv - x_orig).reshape(len(x_orig), -1)
     perturbation_norms_linf = np.abs(perturbation_norms_l2).max(axis=1)
     l2_norms = np.linalg.norm(perturbation_norms_l2, axis=1)
 
     return {
-        "clean_accuracy":          clean_accuracy(y_pred_clean, y_true),
-        "adversarial_accuracy":    adversarial_accuracy(y_pred_adv, y_true),
-        "attack_success_rate":     attack_success_rate(y_pred_clean, y_pred_adv, y_true),
-        "robustness_gap":          robustness_gap(
-                                       clean_accuracy(y_pred_clean, y_true),
-                                       adversarial_accuracy(y_pred_adv, y_true),
-                                   ),
-        "mean_l2_perturbation":    float(l2_norms.mean()),
-        "mean_linf_perturbation":  float(perturbation_norms_linf.mean()),
-        "max_linf_perturbation":   float(perturbation_norms_linf.max()),
-        "certified_robustness":    certified_robustness_ratio(
-                                       y_pred_adv, y_true, l2_norms, epsilon
-                                   ),
+        "clean_accuracy": clean_accuracy(y_pred_clean, y_true),
+        "adversarial_accuracy": adversarial_accuracy(y_pred_adv, y_true),
+        "attack_success_rate": attack_success_rate(y_pred_clean, y_pred_adv, y_true),
+        "robustness_gap": robustness_gap(
+            clean_accuracy(y_pred_clean, y_true),
+            adversarial_accuracy(y_pred_adv, y_true),
+        ),
+        "mean_l2_perturbation": float(l2_norms.mean()),
+        "mean_linf_perturbation": float(perturbation_norms_linf.mean()),
+        "max_linf_perturbation": float(perturbation_norms_linf.max()),
+        "certified_robustness": certified_robustness_ratio(y_pred_adv, y_true, l2_norms, epsilon),
     }

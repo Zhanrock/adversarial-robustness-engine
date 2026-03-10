@@ -23,7 +23,7 @@ References
 from __future__ import annotations
 
 import numpy as np
-from scipy.ndimage import uniform_filter, gaussian_filter
+from scipy.ndimage import gaussian_filter, uniform_filter
 
 from adversarial_robustness.defenses.base_defense import BaseDefense
 from adversarial_robustness.utils.logger import get_logger
@@ -59,7 +59,7 @@ class GaussianDenoiser(BaseDefense):
     ) -> None:
         if sigma < 0:
             raise ValueError(f"sigma must be ≥ 0, got {sigma}")
-        self.sigma    = sigma
+        self.sigma = sigma
         self.clip_min = clip_min
         self.clip_max = clip_max
 
@@ -70,7 +70,7 @@ class GaussianDenoiser(BaseDefense):
             return x.copy()
 
         result = np.empty_like(x)
-        for i in range(x.shape[0]):      # batch dimension
+        for i in range(x.shape[0]):  # batch dimension
             for c in range(x.shape[1]):  # channel dimension
                 result[i, c] = gaussian_filter(x[i, c], sigma=self.sigma)
 
@@ -101,12 +101,10 @@ class MedianDenoiser(BaseDefense):
         clip_max: float = 1.0,
     ) -> None:
         if kernel_size < 1 or kernel_size % 2 == 0:
-            raise ValueError(
-                f"kernel_size must be a positive odd integer, got {kernel_size}"
-            )
+            raise ValueError(f"kernel_size must be a positive odd integer, got {kernel_size}")
         self.kernel_size = kernel_size
-        self.clip_min    = clip_min
-        self.clip_max    = clip_max
+        self.clip_min = clip_min
+        self.clip_max = clip_max
 
     def preprocess(self, x: np.ndarray) -> np.ndarray:
         """Apply uniform (box) filter as a fast median approximation."""
@@ -115,9 +113,7 @@ class MedianDenoiser(BaseDefense):
         half_k = self.kernel_size // 2
         for i in range(x.shape[0]):
             for c in range(x.shape[1]):
-                result[i, c] = uniform_filter(
-                    x[i, c], size=self.kernel_size, mode="reflect"
-                )
+                result[i, c] = uniform_filter(x[i, c], size=self.kernel_size, mode="reflect")
         return np.clip(result, self.clip_min, self.clip_max)
 
     def __repr__(self) -> str:
@@ -144,10 +140,10 @@ class FeatureSqueezing(BaseDefense):
         if not 1 <= bit_depth <= 8:
             raise ValueError(f"bit_depth must be in [1, 8], got {bit_depth}")
         self.bit_depth = bit_depth
-        self._max      = 2 ** bit_depth - 1
+        self._max = 2**bit_depth - 1
 
     def preprocess(self, x: np.ndarray) -> np.ndarray:
-        x      = np.asarray(x, dtype=np.float32)
+        x = np.asarray(x, dtype=np.float32)
         # Quantise to bit_depth levels and rescale back to [0, 1]
         squeezed = np.round(x * self._max) / self._max
         return np.clip(squeezed, 0.0, 1.0)

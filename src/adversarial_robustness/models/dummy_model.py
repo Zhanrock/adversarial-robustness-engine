@@ -13,8 +13,9 @@ analytically via the cross-entropy loss gradient formula.
 
 from __future__ import annotations
 
+from typing import Optional, Tuple
+
 import numpy as np
-from typing import Tuple, Optional
 
 from adversarial_robustness.models.base_model import BaseModel
 from adversarial_robustness.utils.logger import get_logger
@@ -53,7 +54,8 @@ class DummyClassifier(BaseModel):
 
         logger.debug(
             "DummyClassifier initialised: input_dim=%d, num_classes=%d",
-            self._input_dim, num_classes,
+            self._input_dim,
+            num_classes,
         )
 
     # ------------------------------------------------------------------
@@ -72,7 +74,7 @@ class DummyClassifier(BaseModel):
     def _softmax(z: np.ndarray) -> np.ndarray:
         """Numerically stable softmax."""
         shifted = z - z.max(axis=1, keepdims=True)
-        exp_z   = np.exp(shifted)
+        exp_z = np.exp(shifted)
         return exp_z / exp_z.sum(axis=1, keepdims=True)
 
     # ------------------------------------------------------------------
@@ -87,9 +89,7 @@ class DummyClassifier(BaseModel):
         """Return predicted class indices (N,)."""
         return self._logits(x).argmax(axis=1).astype(np.int64)
 
-    def get_gradients(
-        self, x: np.ndarray, labels: np.ndarray
-    ) -> Tuple[np.ndarray, float]:
+    def get_gradients(self, x: np.ndarray, labels: np.ndarray) -> Tuple[np.ndarray, float]:
         """
         Compute cross-entropy loss gradient w.r.t. input *x*.
 
@@ -101,20 +101,20 @@ class DummyClassifier(BaseModel):
         (grad_x, loss_scalar)
         """
         n = x.shape[0]
-        logits   = self._logits(x)                          # (N, C)
-        probs    = self._softmax(logits)                    # (N, C)
+        logits = self._logits(x)  # (N, C)
+        probs = self._softmax(logits)  # (N, C)
 
         # Cross-entropy loss
         log_probs = np.log(probs[np.arange(n), labels] + 1e-12)
         loss = -log_probs.mean()
 
         # Gradient of cross-entropy w.r.t. logits
-        dlogits        = probs.copy()                       # (N, C)
+        dlogits = probs.copy()  # (N, C)
         dlogits[np.arange(n), labels] -= 1.0
-        dlogits       /= n
+        dlogits /= n
 
         # Gradient w.r.t. flattened input
-        d_flat = dlogits @ self._W.T                        # (N, input_dim)
+        d_flat = dlogits @ self._W.T  # (N, input_dim)
 
         # Reshape back to input shape
         grad_x = d_flat.reshape(x.shape).astype(np.float32)
@@ -143,7 +143,7 @@ class PytorchModelWrapper(BaseModel):
 
     def __init__(
         self,
-        module,                         # torch.nn.Module
+        module,  # torch.nn.Module
         num_classes: int,
         input_shape: Tuple[int, ...] = (3, 224, 224),
         device: str = "cpu",
@@ -151,6 +151,7 @@ class PytorchModelWrapper(BaseModel):
         super().__init__(num_classes, input_shape)
         try:
             import torch
+
             self._torch = torch
         except ImportError as exc:
             raise ImportError(
@@ -163,8 +164,7 @@ class PytorchModelWrapper(BaseModel):
         self._loss_fn = torch.nn.CrossEntropyLoss()
 
     def _to_tensor(self, x: np.ndarray):
-        return self._torch.tensor(x, dtype=self._torch.float32,
-                                  device=self._device)
+        return self._torch.tensor(x, dtype=self._torch.float32, device=self._device)
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         self._module.eval()
@@ -176,15 +176,12 @@ class PytorchModelWrapper(BaseModel):
         logits = self.forward(x)
         return logits.argmax(axis=1).astype(np.int64)
 
-    def get_gradients(
-        self, x: np.ndarray, labels: np.ndarray
-    ) -> Tuple[np.ndarray, float]:
+    def get_gradients(self, x: np.ndarray, labels: np.ndarray) -> Tuple[np.ndarray, float]:
         self._module.eval()
-        t_x   = self._to_tensor(x).requires_grad_(True)
-        t_y   = self._torch.tensor(labels, dtype=self._torch.long,
-                                   device=self._device)
+        t_x = self._to_tensor(x).requires_grad_(True)
+        t_y = self._torch.tensor(labels, dtype=self._torch.long, device=self._device)
         logits = self._module(t_x)
-        loss   = self._loss_fn(logits, t_y)
+        loss = self._loss_fn(logits, t_y)
         loss.backward()
         grad = t_x.grad.cpu().numpy()
         return grad, float(loss.item())

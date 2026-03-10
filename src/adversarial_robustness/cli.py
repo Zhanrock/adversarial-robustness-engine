@@ -100,6 +100,7 @@ def evaluate() -> None:
 
     model = DummyClassifier(num_classes=10, input_shape=input_shape)
     from adversarial_robustness.defenses.base_defense import BaseDefense
+
     defenses: list[BaseDefense] = [] if args.no_defense else [GaussianDenoiser(sigma=0.05)]
 
     # Build attacks

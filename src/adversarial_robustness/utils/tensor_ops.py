@@ -34,8 +34,6 @@ def get_device(preference: str = "auto") -> str:
     """Return the best available compute device string."""
     if not _TORCH_AVAILABLE:
         return "numpy"
-    import torch
-
     if preference == "auto":
         if torch.cuda.is_available():
             return "cuda"

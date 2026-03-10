@@ -110,7 +110,6 @@ class MedianDenoiser(BaseDefense):
         """Apply uniform (box) filter as a fast median approximation."""
         x = np.asarray(x, dtype=np.float32)
         result = np.empty_like(x)
-        half_k = self.kernel_size // 2
         for i in range(x.shape[0]):
             for c in range(x.shape[1]):
                 result[i, c] = uniform_filter(x[i, c], size=self.kernel_size, mode="reflect")

@@ -25,7 +25,6 @@ from __future__ import annotations
 import numpy as np
 
 from adversarial_robustness.attacks.base_attack import AttackResult, BaseAttack
-from adversarial_robustness.models.base_model import BaseModel
 from adversarial_robustness.utils.logger import get_logger
 
 logger = get_logger(__name__)

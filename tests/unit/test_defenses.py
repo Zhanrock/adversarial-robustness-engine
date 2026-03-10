@@ -7,14 +7,14 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
-from adversarial_robustness.defenses.adversarial_training import AdversarialTrainer
-from adversarial_robustness.defenses.base_defense import DefensePipeline
-from adversarial_robustness.defenses.denoiser import (
+from adversarial_robustness.defenses.adversarial_training import AdversarialTrainer  # noqa: E402
+from adversarial_robustness.defenses.base_defense import DefensePipeline  # noqa: E402
+from adversarial_robustness.defenses.denoiser import (  # noqa: E402
     FeatureSqueezing,
     GaussianDenoiser,
     MedianDenoiser,
 )
-from adversarial_robustness.models.dummy_model import DummyClassifier
+from adversarial_robustness.models.dummy_model import DummyClassifier  # noqa: E402
 
 RNG = np.random.default_rng(42)
 MODEL = DummyClassifier(num_classes=5, input_shape=(3, 8, 8), seed=42)

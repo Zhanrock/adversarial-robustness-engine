@@ -13,7 +13,7 @@ analytically via the cross-entropy loss gradient formula.
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Tuple
 
 import numpy as np
 

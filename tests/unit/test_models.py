@@ -7,8 +7,8 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
-from adversarial_robustness.models.base_model import BaseModel
-from adversarial_robustness.models.dummy_model import DummyClassifier
+from adversarial_robustness.models.base_model import BaseModel  # noqa: E402
+from adversarial_robustness.models.dummy_model import DummyClassifier  # noqa: E402
 
 RNG = np.random.default_rng(42)
 MODEL = DummyClassifier(num_classes=5, input_shape=(3, 8, 8), seed=42)
@@ -54,7 +54,6 @@ class TestDummyClassifier(unittest.TestCase):
 
     def test_single_sample(self):
         x1 = X[:1]
-        y1 = Y[:1]
         self.assertEqual(MODEL.forward(x1).shape, (1, 5))
         self.assertEqual(MODEL.predict(x1).shape, (1,))
 

@@ -9,14 +9,14 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
-from adversarial_robustness.attacks.fgsm import FGSM
-from adversarial_robustness.attacks.patch_attack import PatchAttack
-from adversarial_robustness.attacks.pgd import PGD
-from adversarial_robustness.defenses.adversarial_training import AdversarialTrainer
-from adversarial_robustness.defenses.base_defense import DefensePipeline
-from adversarial_robustness.defenses.denoiser import FeatureSqueezing, GaussianDenoiser
-from adversarial_robustness.evaluation.benchmarker import RobustnessBenchmarker
-from adversarial_robustness.models.dummy_model import DummyClassifier
+from adversarial_robustness.attacks.fgsm import FGSM  # noqa: E402
+from adversarial_robustness.attacks.patch_attack import PatchAttack  # noqa: E402
+from adversarial_robustness.attacks.pgd import PGD  # noqa: E402
+from adversarial_robustness.defenses.adversarial_training import AdversarialTrainer  # noqa: E402
+from adversarial_robustness.defenses.base_defense import DefensePipeline  # noqa: E402
+from adversarial_robustness.defenses.denoiser import FeatureSqueezing, GaussianDenoiser  # noqa: E402
+from adversarial_robustness.evaluation.benchmarker import RobustnessBenchmarker  # noqa: E402
+from adversarial_robustness.models.dummy_model import DummyClassifier  # noqa: E402
 
 RNG = np.random.default_rng(0)
 X = RNG.random((64, 3, 16, 16)).astype(np.float32)

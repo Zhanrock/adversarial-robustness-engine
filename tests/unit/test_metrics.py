@@ -7,7 +7,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
-from adversarial_robustness.evaluation.metrics import (
+from adversarial_robustness.evaluation.metrics import (  # noqa: E402
     adversarial_accuracy,
     attack_success_rate,
     clean_accuracy,
@@ -15,7 +15,7 @@ from adversarial_robustness.evaluation.metrics import (
     mean_perturbation_norm,
     robustness_gap,
 )
-from adversarial_robustness.models.dummy_model import DummyClassifier
+from adversarial_robustness.models.dummy_model import DummyClassifier  # noqa: E402
 
 
 class TestCleanAccuracy(unittest.TestCase):

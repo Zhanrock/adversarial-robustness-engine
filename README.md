@@ -2,7 +2,7 @@
 
 > **Protect safety-critical computer vision models from adversarial attacks in real-time video analytics pipelines.**
 
-[![CI](https://github.com/YOUR_USERNAME/adversarial-robustness-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/adversarial-robustness-engine/actions)
+[![CI](https://github.com/Zhanrock/adversarial-robustness-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/Zhanrock/adversarial-robustness-engine/actions)
 [![Python](https://img.shields.io/badge/python-3.9%20|%203.10%20|%203.11-blue)](https://www.python.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-81%20passing-brightgreen)]()

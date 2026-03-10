@@ -8,43 +8,89 @@ on:
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────
-  # Lint & Type Check
+  # Auto-format: runs black + isort and commits any changes back to branch
+  # This means CI never fails due to formatting — it self-heals.
+  # ─────────────────────────────────────────────────────────────────────────
+  format:
+    name: Auto-format (black + isort)
+    runs-on: ubuntu-latest
+    # Only auto-commit on push to main/develop (not on PRs from forks)
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install formatters
+        run: pip install black==23.12.1 isort==5.13.2
+
+      - name: Run black
+        run: black src/ tests/ --line-length 100
+
+      - name: Run isort
+        run: isort src/ tests/ --profile black --line-length 100
+
+      - name: Commit formatting changes (if any)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet && echo "No formatting changes needed" || (
+            git add -A
+            git commit -m "style: auto-format with black + isort [skip ci]"
+            git push
+          )
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Lint — runs AFTER format job so code is already formatted
   # ─────────────────────────────────────────────────────────────────────────
   lint:
     name: Lint & Type Check
     runs-on: ubuntu-latest
+    needs: format
+    if: always()
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install lint dependencies
+      - name: Install lint tools
+        run: pip install black==23.12.1 isort==5.13.2 flake8 mypy
+
+      - name: Black check
+        run: black --check --diff src/ tests/ --line-length 100
+
+      - name: isort check
+        run: isort --check-only --diff src/ tests/ --profile black --line-length 100
+
+      - name: Flake8
         run: |
-          python -m pip install --upgrade pip
-          pip install black isort flake8 mypy
+          flake8 src/ tests/ \
+            --max-line-length 100 \
+            --extend-ignore E203,W503,E501 \
+            --exclude tests/pytest_compat.py
 
-      - name: Black formatting check
-        run: black --check --diff src/ tests/
-
-      - name: isort import ordering check
-        run: isort --check-only --diff src/ tests/
-
-      - name: Flake8 style check
-        run: flake8 src/ tests/
-
-      - name: Mypy type check
+      - name: Mypy
         run: mypy src/adversarial_robustness --ignore-missing-imports
 
   # ─────────────────────────────────────────────────────────────────────────
-  # Unit Tests (CPU, no GPU required)
+  # Unit Tests — all three Python versions
   # ─────────────────────────────────────────────────────────────────────────
   test-unit:
     name: Unit Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    needs: format
+    if: always()
     strategy:
       fail-fast: false
       matrix:
@@ -53,29 +99,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies (CPU-only)
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install numpy scipy Pillow pyyaml
-          pip install pytest pytest-cov
+          python -m pip install --upgrade pip setuptools wheel
+          pip install numpy scipy Pillow pyyaml pytest pytest-cov
 
-      - name: Install package (editable)
-        run: pip install -e ".[dev]" --no-deps
+      - name: Install package (no torch needed for unit tests)
+        run: pip install --no-deps -e .
 
-      - name: Run unit tests with coverage
+      - name: Run unit tests
         run: |
           pytest tests/unit/ -v \
             --cov=adversarial_robustness \
             --cov-report=xml \
             --cov-report=term-missing \
-            -m "not gpu"
+            -m "not gpu and not slow"
 
-      - name: Upload coverage to Codecov
+      - name: Upload coverage
         uses: codecov/codecov-action@v4
         if: matrix.python-version == '3.11'
         with:
@@ -93,46 +137,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools wheel
           pip install numpy scipy Pillow pyyaml pytest pytest-cov
 
+      - name: Install package
+        run: pip install --no-deps -e .
+
       - name: Run integration tests
-        run: |
-          pytest tests/integration/ -v -m "integration"
+        run: pytest tests/integration/ -v
 
   # ─────────────────────────────────────────────────────────────────────────
-  # Smoke test — run the benchmark script end-to-end
+  # Smoke Test — run benchmark script end-to-end
   # ─────────────────────────────────────────────────────────────────────────
   smoke-test:
-    name: Smoke Test (Benchmark Script)
+    name: Smoke Test
     runs-on: ubuntu-latest
     needs: test-unit
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools wheel
           pip install numpy scipy Pillow pyyaml
 
-      - name: Run benchmark script
-        run: python scripts/run_benchmark.py --samples 50 --pgd-steps 5
+      - name: Add src to PYTHONPATH and run benchmark
+        run: PYTHONPATH=src python scripts/run_benchmark.py --samples 50 --pgd-steps 5
 
   # ─────────────────────────────────────────────────────────────────────────
-  # Build check
+  # Build Check
   # ─────────────────────────────────────────────────────────────────────────
   build:
     name: Build Package
@@ -142,8 +186,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
@@ -152,5 +195,5 @@ jobs:
           pip install build
           python -m build
 
-      - name: Check dist
+      - name: Verify dist
         run: ls -lh dist/

@@ -17,7 +17,7 @@ import pytest
 # Ensure src/ is importable without installation
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from adversarial_robustness.models.dummy_model import DummyClassifier
+from adversarial_robustness.models.dummy_model import DummyClassifier  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Random number generator (seeded for reproducibility)

@@ -11,46 +11,6 @@ jobs:
   # Auto-format: runs black + isort and commits any changes back to branch
   # This means CI never fails due to formatting — it self-heals.
   # ─────────────────────────────────────────────────────────────────────────
-  format:
-    name: Auto-format (black + isort)
-    runs-on: ubuntu-latest
-    # Only auto-commit on push to main/develop (not on PRs from forks)
-    if: github.event_name == 'push'
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install formatters
-        run: pip install black==23.12.1 isort==5.13.2
-
-      - name: Run black
-        run: black src/ tests/ --line-length 100
-
-      - name: Run isort
-        run: isort src/ tests/ --profile black --line-length 100
-
-      - name: Commit formatting changes (if any)
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git diff --quiet && echo "No formatting changes needed" || (
-            git add -A
-            git commit -m "style: auto-format with black + isort [skip ci]"
-            git push
-          )
-
-  # ─────────────────────────────────────────────────────────────────────────
-  # Lint — runs AFTER format job so code is already formatted
-  # ─────────────────────────────────────────────────────────────────────────
   lint:
     name: Lint & Type Check
     runs-on: ubuntu-latest

@@ -1,5 +1,4 @@
 """tests/unit/test_config.py — Config loader tests."""
-
 import os
 import sys
 import tempfile

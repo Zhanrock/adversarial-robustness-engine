@@ -1,5 +1,4 @@
 """tests/unit/test_defenses.py — Defense module tests."""
-
 import os
 import sys
 import unittest

@@ -1,5 +1,4 @@
 """tests/unit/test_models.py — DummyClassifier & BaseModel tests."""
-
 import os
 import sys
 import unittest

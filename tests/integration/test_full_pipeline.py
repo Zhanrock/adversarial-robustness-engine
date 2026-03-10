@@ -1,5 +1,4 @@
 """tests/integration/test_full_pipeline.py — Full pipeline integration tests."""
-
 import json
 import os
 import sys

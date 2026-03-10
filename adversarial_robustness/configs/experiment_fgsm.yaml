@@ -1,0 +1,21 @@
+# Experiment: FGSM attack evaluation with Gaussian denoising defense
+# Inherits from default.yaml — only overrides are listed here.
+_base_: default.yaml
+
+project:
+  name: "experiment-fgsm-denoising"
+
+attacks:
+  fgsm:
+    epsilon: 0.05              # Stronger attack for stress-test
+
+defenses:
+  gaussian_denoiser:
+    enabled: true
+    sigma: 0.08
+  adversarial_training:
+    enabled: false             # Evaluate denoising alone
+
+evaluation:
+  batch_size: 32
+  save_adversarial_examples: true

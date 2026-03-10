@@ -1,0 +1,105 @@
+# =============================================================================
+# Adversarial Robustness Engine — Default Configuration
+# =============================================================================
+
+project:
+  name: adversarial-robustness-engine
+  version: "1.0.0"
+  description: "Defense framework for safety-critical computer vision models"
+
+# ---------------------------------------------------------------------------
+# Model configuration
+# ---------------------------------------------------------------------------
+model:
+  architecture: resnet18       # resnet18 | resnet50 | mobilenet_v2 | custom
+  num_classes: 10
+  pretrained: false
+  input_size: [3, 224, 224]    # [C, H, W]
+  checkpoint_dir: checkpoints/
+
+# ---------------------------------------------------------------------------
+# Attack configurations
+# ---------------------------------------------------------------------------
+attacks:
+  fgsm:
+    epsilon: 0.03              # L-inf perturbation budget (0.0–1.0, normalised)
+    clip_min: 0.0
+    clip_max: 1.0
+
+  pgd:
+    epsilon: 0.03              # L-inf perturbation budget
+    alpha: 0.007               # Step size per iteration
+    num_steps: 40              # PGD iterations
+    random_start: true         # Random initialization within epsilon ball
+    clip_min: 0.0
+    clip_max: 1.0
+
+  patch:
+    patch_size: 32             # Patch side length in pixels
+    patch_shape: square        # square | circle
+    num_steps: 500
+    step_size: 0.01
+    clip_min: 0.0
+    clip_max: 1.0
+
+# ---------------------------------------------------------------------------
+# Defense configurations
+# ---------------------------------------------------------------------------
+defenses:
+  adversarial_training:
+    enabled: true
+    attack: pgd                # Attack used during training
+    ratio: 0.5                 # Fraction of adversarial examples per batch
+
+  gaussian_denoiser:
+    enabled: true
+    sigma: 0.05                # Gaussian noise std for denoising
+    kernel_size: 3
+
+  jpeg_compression:
+    enabled: false
+    quality: 75                # JPEG quality factor (1-95)
+
+  feature_squeezing:
+    enabled: false
+    bit_depth: 4               # Colour bit depth for squeezing
+
+# ---------------------------------------------------------------------------
+# Evaluation configuration
+# ---------------------------------------------------------------------------
+evaluation:
+  batch_size: 64
+  metrics:
+    - clean_accuracy
+    - adversarial_accuracy
+    - robustness_gap
+    - attack_success_rate
+    - mean_perturbation_norm
+  output_dir: reports/
+  save_adversarial_examples: true
+  num_samples_to_save: 16
+
+# ---------------------------------------------------------------------------
+# Training configuration
+# ---------------------------------------------------------------------------
+training:
+  epochs: 50
+  batch_size: 128
+  optimizer: adam              # sgd | adam | adamw
+  learning_rate: 0.001
+  weight_decay: 1.0e-4
+  lr_scheduler: cosine         # step | cosine | none
+  warmup_epochs: 5
+  grad_clip: 1.0
+  seed: 42
+  num_workers: 4
+  device: auto                 # auto | cpu | cuda | mps
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+logging:
+  level: INFO                  # DEBUG | INFO | WARNING | ERROR
+  log_dir: logs/
+  log_to_file: true
+  log_format: "%(asctime)s | %(name)s | %(levelname)s | %(message)s"

@@ -14,7 +14,10 @@ from adversarial_robustness.attacks.patch_attack import PatchAttack  # noqa: E40
 from adversarial_robustness.attacks.pgd import PGD  # noqa: E402
 from adversarial_robustness.defenses.adversarial_training import AdversarialTrainer  # noqa: E402
 from adversarial_robustness.defenses.base_defense import DefensePipeline  # noqa: E402
-from adversarial_robustness.defenses.denoiser import FeatureSqueezing, GaussianDenoiser  # noqa: E402
+from adversarial_robustness.defenses.denoiser import (  # noqa: E402
+    FeatureSqueezing,
+    GaussianDenoiser,
+)
 from adversarial_robustness.evaluation.benchmarker import RobustnessBenchmarker  # noqa: E402
 from adversarial_robustness.models.dummy_model import DummyClassifier  # noqa: E402
 

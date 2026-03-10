@@ -6,7 +6,7 @@ import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
-from adversarial_robustness.utils.config import Config, load_config  # noqa: E402
+from adversarial_robustness.utils.config import load_config  # noqa: E402
 
 YAML = "model:\n  architecture: resnet18\n  num_classes: 10\nattacks:\n  fgsm:\n    epsilon: 0.03\n"
 

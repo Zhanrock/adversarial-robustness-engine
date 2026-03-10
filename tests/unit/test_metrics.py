@@ -8,7 +8,6 @@ import numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from adversarial_robustness.evaluation.metrics import (  # noqa: E402
-    adversarial_accuracy,
     attack_success_rate,
     clean_accuracy,
     compute_all_metrics,

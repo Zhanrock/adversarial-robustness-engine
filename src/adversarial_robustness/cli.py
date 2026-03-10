@@ -115,7 +115,7 @@ def evaluate() -> None:
         output_dir=args.output_dir,
         model_name="DummyClassifier",
     )
-    report = benchmarker.run(x_test, y_test, attacks=attacks)
+    benchmarker.run(x_test, y_test, attacks=attacks)
     logger.info("Evaluation complete. Report saved to: %s", args.output_dir)
 
 

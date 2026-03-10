@@ -78,7 +78,9 @@ def evaluate() -> None:
         cfg_epsilon = 0.03
     else:
         cfg = load_config(args.config)
-        cfg_epsilon = getattr(getattr(getattr(cfg, "attacks", None), "fgsm", None), "epsilon", None)
+        cfg_epsilon = float(
+            getattr(getattr(getattr(cfg, "attacks", None), "fgsm", None), "epsilon", 0.03)
+        )
 
     epsilon = args.epsilon if args.epsilon is not None else cfg_epsilon
 

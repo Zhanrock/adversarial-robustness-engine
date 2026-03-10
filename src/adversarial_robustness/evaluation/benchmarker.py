@@ -37,16 +37,17 @@ logger = get_logger(__name__)
 # Report data classes
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class AttackEvalResult:
     attack_name: str
     attack_config: Dict
     clean_accuracy: float
     adversarial_accuracy: float
-    defended_accuracy: float           # accuracy after defense applied
+    defended_accuracy: float  # accuracy after defense applied
     attack_success_rate: float
-    robustness_gap: float              # clean_acc - adversarial_acc
-    defense_recovery: float           # defended_acc - adversarial_acc
+    robustness_gap: float  # clean_acc - adversarial_acc
+    defense_recovery: float  # defended_acc - adversarial_acc
     mean_l2_perturbation: float
     mean_linf_perturbation: float
     eval_time_sec: float
@@ -93,12 +94,18 @@ class BenchmarkReport:
         print(f"  {self.timestamp}")
         print(sep)
         print(f"  Clean Accuracy  : {self.clean_accuracy:.4f}  ({self.clean_accuracy*100:.2f}%)")
-        print(f"  Worst-Case Adv  : {self.worst_case_robustness():.4f}  "
-              f"({self.worst_case_robustness()*100:.2f}%)")
-        print(f"  Best Defended   : {self.best_defended_accuracy():.4f}  "
-              f"({self.best_defended_accuracy()*100:.2f}%)")
-        print(f"\n  {'Attack':<18} {'Adv Acc':>8} {'Defended':>8} "
-              f"{'ASR':>8} {'Gap':>8} {'L2':>8} {'Linf':>8}")
+        print(
+            f"  Worst-Case Adv  : {self.worst_case_robustness():.4f}  "
+            f"({self.worst_case_robustness()*100:.2f}%)"
+        )
+        print(
+            f"  Best Defended   : {self.best_defended_accuracy():.4f}  "
+            f"({self.best_defended_accuracy()*100:.2f}%)"
+        )
+        print(
+            f"\n  {'Attack':<18} {'Adv Acc':>8} {'Defended':>8} "
+            f"{'ASR':>8} {'Gap':>8} {'L2':>8} {'Linf':>8}"
+        )
         print(f"  {'-'*70}")
         for r in self.results:
             print(
@@ -116,6 +123,7 @@ class BenchmarkReport:
 # ---------------------------------------------------------------------------
 # Benchmarker
 # ---------------------------------------------------------------------------
+
 
 class RobustnessBenchmarker:
     """
@@ -142,8 +150,8 @@ class RobustnessBenchmarker:
         output_dir: str = "reports",
         model_name: str = "model",
     ) -> None:
-        self.model      = model
-        self.defenses   = defenses or []
+        self.model = model
+        self.defenses = defenses or []
         self.output_dir = output_dir
         self.model_name = model_name
 
@@ -170,7 +178,9 @@ class RobustnessBenchmarker:
         """
         logger.info(
             "Starting benchmark: model=%s, n_samples=%d, n_attacks=%d",
-            self.model_name, len(x_test), len(attacks),
+            self.model_name,
+            len(x_test),
+            len(attacks),
         )
 
         # ── 1. Clean accuracy ────────────────────────────────────────────
@@ -233,8 +243,11 @@ class RobustnessBenchmarker:
 
             logger.info(
                 "  %s → adv_acc=%.4f, defended=%.4f, ASR=%.4f, gap=%.4f",
-                attack_name, adv_acc, defended_acc,
-                attack_result.attack_success_rate, clean_acc - adv_acc,
+                attack_name,
+                adv_acc,
+                defended_acc,
+                attack_result.attack_success_rate,
+                clean_acc - adv_acc,
             )
 
         if save_report:

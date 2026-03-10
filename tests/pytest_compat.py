@@ -14,15 +14,14 @@ import unittest
 
 class _Approx:
     """Minimal pytest.approx equivalent."""
+
     def __init__(self, expected, abs=1e-6, rel=1e-6):
         self.expected = expected
-        self.abs_tol  = abs
-        self.rel_tol  = rel
+        self.abs_tol = abs
+        self.rel_tol = rel
 
     def __eq__(self, other):
-        return abs(other - self.expected) <= max(
-            self.abs_tol, self.rel_tol * abs(self.expected)
-        )
+        return abs(other - self.expected) <= max(self.abs_tol, self.rel_tol * abs(self.expected))
 
     def __repr__(self):
         return f"approx({self.expected!r})"
@@ -47,10 +46,13 @@ class _MarkDecorator:
             # If called with a single callable, it's a decorator
             if len(args) == 1 and callable(args[0]) and not kwargs:
                 return args[0]
+
             # Otherwise return a decorator factory
             def decorator(fn):
                 return fn
+
             return decorator
+
         return decorator_or_value
 
     def parametrize(self, argnames, argvalues, **kwargs):
@@ -58,8 +60,10 @@ class _MarkDecorator:
         Minimal parametrize: flattens into unittest-runnable test methods.
         Returns a class decorator that duplicates the test for each set of params.
         """
+
         def class_decorator(cls):
             return cls
+
         return class_decorator
 
 
@@ -70,6 +74,8 @@ def fixture(fn=None, scope="function", **kwargs):
     """No-op fixture decorator for unittest compatibility."""
     if fn is not None:
         return fn
+
     def decorator(f):
         return f
+
     return decorator

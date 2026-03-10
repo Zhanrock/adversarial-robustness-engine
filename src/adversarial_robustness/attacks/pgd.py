@@ -22,10 +22,11 @@ where:
 
 from __future__ import annotations
 
-import numpy as np
 from typing import List
 
-from adversarial_robustness.attacks.base_attack import BaseAttack, AttackResult
+import numpy as np
+
+from adversarial_robustness.attacks.base_attack import AttackResult, BaseAttack
 from adversarial_robustness.models.base_model import BaseModel
 from adversarial_robustness.utils.logger import get_logger
 
@@ -69,8 +70,8 @@ class PGD(BaseAttack):
         if num_steps < 1:
             raise ValueError(f"num_steps must be ≥ 1, got {num_steps}")
 
-        self.alpha        = alpha
-        self.num_steps    = num_steps
+        self.alpha = alpha
+        self.num_steps = num_steps
         self.random_start = random_start
 
     def generate(
@@ -90,25 +91,25 @@ class PGD(BaseAttack):
         -------
         AttackResult with the strongest found adversarial examples.
         """
-        x      = np.asarray(x, dtype=np.float32)
+        x = np.asarray(x, dtype=np.float32)
         labels = np.asarray(labels, dtype=np.int64)
 
         if x.ndim != 4:
-            raise ValueError(
-                f"Expected 4-D input (N, C, H, W), got shape {x.shape}"
-            )
+            raise ValueError(f"Expected 4-D input (N, C, H, W), got shape {x.shape}")
 
         logger.debug(
             "PGD: batch_size=%d, epsilon=%.4f, alpha=%.4f, steps=%d, random_start=%s",
-            x.shape[0], self.epsilon, self.alpha, self.num_steps, self.random_start,
+            x.shape[0],
+            self.epsilon,
+            self.alpha,
+            self.num_steps,
+            self.random_start,
         )
 
         # ── 1. Initialise starting point ─────────────────────────────────
         if self.random_start:
             # Random uniform initialisation within ε-ball
-            noise = np.random.uniform(
-                -self.epsilon, self.epsilon, size=x.shape
-            ).astype(np.float32)
+            noise = np.random.uniform(-self.epsilon, self.epsilon, size=x.shape).astype(np.float32)
             x_adv = self._clip(x + noise)
         else:
             x_adv = x.copy()
@@ -129,25 +130,24 @@ class PGD(BaseAttack):
             x_adv = self._clip(x + delta)
 
             if (step + 1) % 10 == 0:
-                logger.debug(
-                    "PGD step %d/%d | loss=%.4f", step + 1, self.num_steps, loss
-                )
+                logger.debug("PGD step %d/%d | loss=%.4f", step + 1, self.num_steps, loss)
 
         result = self._compute_result(
-            x, x_adv, labels,
+            x,
+            x_adv,
+            labels,
             metadata={
-                "alpha":         self.alpha,
-                "num_steps":     self.num_steps,
-                "random_start":  self.random_start,
-                "epsilon":       self.epsilon,
-                "final_loss":    loss_history[-1] if loss_history else 0.0,
-                "loss_history":  loss_history,
+                "alpha": self.alpha,
+                "num_steps": self.num_steps,
+                "random_start": self.random_start,
+                "epsilon": self.epsilon,
+                "final_loss": loss_history[-1] if loss_history else 0.0,
+                "loss_history": loss_history,
             },
         )
 
         logger.info(
-            "PGD complete — ASR: %.2f%% | mean L2: %.4f | mean Linf: %.4f | "
-            "final_loss: %.4f",
+            "PGD complete — ASR: %.2f%% | mean L2: %.4f | mean Linf: %.4f | " "final_loss: %.4f",
             result.attack_success_rate * 100,
             result.mean_l2_norm,
             result.mean_linf_norm,

@@ -82,8 +82,8 @@ class BaseAttack(ABC):
         if clip_min >= clip_max:
             raise ValueError("clip_min must be < clip_max")
 
-        self.model    = model
-        self.epsilon  = epsilon
+        self.model = model
+        self.epsilon = epsilon
         self.clip_min = clip_min
         self.clip_max = clip_max
 
@@ -122,18 +122,18 @@ class BaseAttack(ABC):
 
         # Attack success: model prediction changes from correct label
         orig_preds = self.model.predict(x_orig)
-        adv_preds  = self.model.predict(x_adv)
+        adv_preds = self.model.predict(x_adv)
 
-        was_correct   = orig_preds == labels
+        was_correct = orig_preds == labels
         now_incorrect = adv_preds != labels
         success_flags = was_correct & now_incorrect
 
         asr = float(success_flags.sum() / max(was_correct.sum(), 1))
 
         # Norm statistics (per-sample, then averaged)
-        flat  = perturbations.reshape(len(perturbations), -1)
-        l2    = float(np.linalg.norm(flat, axis=1).mean())
-        linf  = float(np.abs(flat).max(axis=1).mean())
+        flat = perturbations.reshape(len(perturbations), -1)
+        l2 = float(np.linalg.norm(flat, axis=1).mean())
+        linf = float(np.abs(flat).max(axis=1).mean())
 
         return AttackResult(
             adversarial_examples=x_adv,

@@ -61,12 +61,12 @@ class TrainingHistory:
             return {}
         best = self.best_epoch()
         return {
-            "total_epochs":         len(self.epochs),
-            "best_epoch":           best.epoch if best else None,
-            "best_val_adv_acc":     best.val_adv_acc if best else None,
-            "best_val_clean_acc":   best.val_clean_acc if best else None,
-            "final_val_adv_acc":    self.epochs[-1].val_adv_acc,
-            "final_val_clean_acc":  self.epochs[-1].val_clean_acc,
+            "total_epochs": len(self.epochs),
+            "best_epoch": best.epoch if best else None,
+            "best_val_adv_acc": best.val_adv_acc if best else None,
+            "best_val_clean_acc": best.val_clean_acc if best else None,
+            "final_val_adv_acc": self.epochs[-1].val_adv_acc,
+            "final_val_clean_acc": self.epochs[-1].val_clean_acc,
         }
 
 
@@ -111,26 +111,26 @@ class AdversarialTrainer:
         if not 0.0 <= ratio <= 1.0:
             raise ValueError(f"ratio must be in [0.0, 1.0], got {ratio}")
 
-        self.model         = model
-        self.ratio         = ratio
-        self.epochs        = epochs
-        self.batch_size    = batch_size
+        self.model = model
+        self.ratio = ratio
+        self.epochs = epochs
+        self.batch_size = batch_size
         self.learning_rate = learning_rate
 
         # Build attack
         if attack == "fgsm":
             self._attack = FGSM(model, epsilon=epsilon)
         elif attack == "pgd":
-            self._attack = PGD(
-                model, epsilon=epsilon,
-                alpha=pgd_alpha, num_steps=pgd_steps
-            )
+            self._attack = PGD(model, epsilon=epsilon, alpha=pgd_alpha, num_steps=pgd_steps)
         else:
             raise ValueError(f"Unknown attack: '{attack}'. Use 'fgsm' or 'pgd'.")
 
         logger.info(
             "AdversarialTrainer initialised: attack=%s, epsilon=%.3f, ratio=%.2f, epochs=%d",
-            attack, epsilon, ratio, epochs,
+            attack,
+            epsilon,
+            ratio,
+            epochs,
         )
 
     def fit(
@@ -155,8 +155,7 @@ class AdversarialTrainer:
         history = TrainingHistory()
         n = len(x_train)
 
-        logger.info("Starting adversarial training: %d samples, %d epochs",
-                    n, self.epochs)
+        logger.info("Starting adversarial training: %d samples, %d epochs", n, self.epochs)
 
         for epoch in range(1, self.epochs + 1):
             t0 = time.monotonic()
@@ -171,13 +170,13 @@ class AdversarialTrainer:
 
             # Mini-batch loop
             for start in range(0, n, self.batch_size):
-                x_b = x_shuffled[start:start + self.batch_size]
-                y_b = y_shuffled[start:start + self.batch_size]
-                bs  = len(x_b)
+                x_b = x_shuffled[start : start + self.batch_size]
+                y_b = y_shuffled[start : start + self.batch_size]
+                bs = len(x_b)
                 total += bs
 
                 # Generate adversarial portion
-                n_adv   = max(1, int(bs * self.ratio))
+                n_adv = max(1, int(bs * self.ratio))
                 x_adv_b = self._attack.generate(x_b[:n_adv], y_b[:n_adv]).adversarial_examples
 
                 # Mixed batch
@@ -192,27 +191,27 @@ class AdversarialTrainer:
                 # (This is a proxy for real backprop — see PytorchModelWrapper
                 #  for actual torch optimizer integration.)
                 flat_grad = grad_x.reshape(bs, -1)
-                self.model._W -= self.learning_rate * (
-                    flat_grad.T @ np.eye(bs, self.model.num_classes)[y_mixed]
-                ) / bs if hasattr(self.model, "_W") else None
+                self.model._W -= (
+                    self.learning_rate
+                    * (flat_grad.T @ np.eye(bs, self.model.num_classes)[y_mixed])
+                    / bs
+                    if hasattr(self.model, "_W")
+                    else None
+                )
 
                 # Track accuracy
                 clean_correct += int((self.model.predict(x_b) == y_b).sum())
-                adv_correct   += int(
-                    (self.model.predict(x_adv_b) == y_b[:n_adv]).sum()
-                )
+                adv_correct += int((self.model.predict(x_adv_b) == y_b[:n_adv]).sum())
 
             # Epoch metrics
             train_clean_acc = clean_correct / total
-            train_adv_acc   = adv_correct / max(1, int(total * self.ratio))
+            train_adv_acc = adv_correct / max(1, int(total * self.ratio))
 
             val_clean_acc = val_adv_acc = 0.0
             if x_val is not None and y_val is not None:
                 val_clean_acc = self.model.accuracy(x_val, y_val)
-                val_adv  = self._attack.generate(x_val, y_val)
-                val_adv_acc = self.model.accuracy(
-                    val_adv.adversarial_examples, y_val
-                )
+                val_adv = self._attack.generate(x_val, y_val)
+                val_adv_acc = self.model.accuracy(val_adv.adversarial_examples, y_val)
 
             elapsed = time.monotonic() - t0
             avg_loss = float(np.mean(epoch_losses)) if epoch_losses else 0.0
@@ -233,10 +232,13 @@ class AdversarialTrainer:
                 "train_clean=%.3f | train_adv=%.3f | "
                 "val_clean=%.3f | val_adv=%.3f | "
                 "time=%.1fs",
-                epoch, self.epochs,
+                epoch,
+                self.epochs,
                 avg_loss,
-                train_clean_acc, train_adv_acc,
-                val_clean_acc, val_adv_acc,
+                train_clean_acc,
+                train_adv_acc,
+                val_clean_acc,
+                val_adv_acc,
                 elapsed,
             )
 

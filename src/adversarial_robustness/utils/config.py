@@ -34,9 +34,7 @@ class Config:
             if isinstance(value, dict):
                 setattr(self, key, Config(value))
             elif isinstance(value, list):
-                setattr(self, key, [
-                    Config(v) if isinstance(v, dict) else v for v in value
-                ])
+                setattr(self, key, [Config(v) if isinstance(v, dict) else v for v in value])
             else:
                 setattr(self, key, value)
 

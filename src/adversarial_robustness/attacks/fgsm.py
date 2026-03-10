@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from adversarial_robustness.attacks.base_attack import BaseAttack, AttackResult
+from adversarial_robustness.attacks.base_attack import AttackResult, BaseAttack
 from adversarial_robustness.models.base_model import BaseModel
 from adversarial_robustness.utils.logger import get_logger
 
@@ -66,29 +66,27 @@ class FGSM(BaseAttack):
         -------
         AttackResult with perturbed examples and attack statistics.
         """
-        x      = np.asarray(x, dtype=np.float32)
+        x = np.asarray(x, dtype=np.float32)
         labels = np.asarray(labels, dtype=np.int64)
 
         if x.ndim != 4:
-            raise ValueError(
-                f"Expected 4-D input (N, C, H, W), got shape {x.shape}"
-            )
+            raise ValueError(f"Expected 4-D input (N, C, H, W), got shape {x.shape}")
 
-        logger.debug(
-            "FGSM: batch_size=%d, epsilon=%.4f", x.shape[0], self.epsilon
-        )
+        logger.debug("FGSM: batch_size=%d, epsilon=%.4f", x.shape[0], self.epsilon)
 
         # ── 1. Compute gradient of loss w.r.t. input ─────────────────────
         grad, loss = self.model.get_gradients(x, labels)
 
         # ── 2. Apply signed gradient perturbation ────────────────────────
         perturbation = self.epsilon * np.sign(grad)
-        x_adv        = self._clip(x + perturbation)
+        x_adv = self._clip(x + perturbation)
 
         logger.debug("FGSM: loss=%.4f", loss)
 
         result = self._compute_result(
-            x, x_adv, labels,
+            x,
+            x_adv,
+            labels,
             metadata={"loss": loss, "epsilon": self.epsilon},
         )
 

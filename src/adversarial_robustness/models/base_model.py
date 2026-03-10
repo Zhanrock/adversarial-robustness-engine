@@ -31,8 +31,8 @@ class BaseModel(ABC):
         num_classes:  Number of output classes.
         input_shape:  Expected input shape as (C, H, W).
         """
-        self.num_classes  = num_classes
-        self.input_shape  = input_shape
+        self.num_classes = num_classes
+        self.input_shape = input_shape
         self._is_training = False
 
     # ------------------------------------------------------------------
@@ -54,9 +54,7 @@ class BaseModel(ABC):
         """
 
     @abstractmethod
-    def get_gradients(
-        self, x: np.ndarray, labels: np.ndarray
-    ) -> Tuple[np.ndarray, float]:
+    def get_gradients(self, x: np.ndarray, labels: np.ndarray) -> Tuple[np.ndarray, float]:
         """
         Compute loss gradients w.r.t. the input *x*.
 

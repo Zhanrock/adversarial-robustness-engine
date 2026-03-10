@@ -8,8 +8,9 @@ Fixtures are structured to mirror real-world use:
   - Both tiny (fast) and full-size inputs
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
 import pytest
 
@@ -18,10 +19,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from adversarial_robustness.models.dummy_model import DummyClassifier
 
-
 # ---------------------------------------------------------------------------
 # Random number generator (seeded for reproducibility)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="session")
 def rng() -> np.random.Generator:
@@ -31,6 +32,7 @@ def rng() -> np.random.Generator:
 # ---------------------------------------------------------------------------
 # Model fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="session")
 def small_model() -> DummyClassifier:
@@ -47,6 +49,7 @@ def standard_model() -> DummyClassifier:
 # ---------------------------------------------------------------------------
 # Data fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="session")
 def small_batch(rng, small_model) -> tuple:
